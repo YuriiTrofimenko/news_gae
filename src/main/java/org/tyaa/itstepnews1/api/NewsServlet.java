@@ -20,6 +20,8 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.tyaa.itstepnews1.dao.DAO;
 import org.tyaa.itstepnews1.entity.News;
 import org.tyaa.itstepnews1.globals.GlobalVariables;
 import org.tyaa.itstepnews1.model.Result;
@@ -31,10 +33,10 @@ import org.tyaa.itstepnews1.model.Result;
 @WebServlet(name = "NewsServlet", urlPatterns = {"/news"})
 public class NewsServlet extends HttpServlet {
 	
-	static {
+	/*static {
 		
 		ObjectifyService.register(News.class);
-	}
+	}*/
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -63,9 +65,21 @@ public class NewsServlet extends HttpServlet {
                         String titleString = request.getParameter("title");
                         String contentString = request.getParameter("content");
                         
-                        News news = new News(titleString, contentString);
+                        //News news = new News(titleString, contentString);
                         
-                        GlobalVariables.news.add(news);
+                        ObjectifyService.run(new VoidWork() {
+                		    public void vrun() {
+                		    	try {
+									DAO.createOrder(titleString, contentString);
+								} catch (Exception ex) {
+									
+									Result result = new Result(ex.getMessage());
+		                            String resultJsonString = gson.toJson(result);
+		                            out.print(resultJsonString);
+								}
+                		    }
+                		});
+                        //GlobalVariables.news.add(news);
                         //Result result = new Result(GlobalVariables.news);
                         ArrayList<String> data = new ArrayList<>();
                         data.add("created");
@@ -76,9 +90,9 @@ public class NewsServlet extends HttpServlet {
                     }
                     case "fetch-all-news" : {
                         
+                    	List<News> news = new ArrayList<>();
+                    	
                     	try {
-                    		
-                    		List<News> news = new ArrayList<>();
                     		
                     		ObjectifyService.run(new VoidWork() {
                     		    public void vrun() {
@@ -86,23 +100,51 @@ public class NewsServlet extends HttpServlet {
     									DAO.getAllOrders(news);
     								} catch (Exception ex) {
     									
-    									String orderJson = gson.toJson(ex.getMessage());
-    			                        out.print(orderJson);
+    									Result result = new Result(ex.getMessage());
+    		                            String resultJsonString = gson.toJson(result);
+    		                            out.print(resultJsonString);
     								}
                     		    }
                     		});
-                    		
-                        	String orderJson = gson.toJson(orders);
-                            out.print(orderJson);
                     	} catch (Exception ex) {
-                    		
-                    		String orderJson = gson.toJson(ex.getMessage());
-                            out.print(orderJson);
+                            
+                            Result result = new Result(ex.getMessage());
+                            String resultJsonString = gson.toJson(result);
+                            out.print(resultJsonString);
                     	}
-                    	
+                        //Result result = new Result(GlobalVariables.news);
+                    	Result result = new Result(news);
+                        String resultJsonString = gson.toJson(result);
+                        out.print(resultJsonString);
                         break;
+                    }
+                    case "delete-news" : {
                         
-                        Result result = new Result(GlobalVariables.news);
+                    	String newsId = request.getParameter("news-id");
+                    	
+                    	try {
+                    		
+                    		ObjectifyService.run(new VoidWork() {
+                    		    public void vrun() {
+                    		    	try {
+    									DAO.deleteOrder(Long.parseLong(newsId));
+    								} catch (Exception ex) {
+    									
+    									Result result = new Result(ex.getMessage());
+    		                            String resultJsonString = gson.toJson(result);
+    		                            out.print(resultJsonString);
+    								}
+                    		    }
+                    		});
+                    	} catch (Exception ex) {
+                            
+                            Result result = new Result(ex.getMessage());
+                            String resultJsonString = gson.toJson(result);
+                            out.print(resultJsonString);
+                    	}
+                    	ArrayList<String> data = new ArrayList<>();
+                        data.add("deleted");
+                        Result result = new Result(data);
                         String resultJsonString = gson.toJson(result);
                         out.print(resultJsonString);
                         break;

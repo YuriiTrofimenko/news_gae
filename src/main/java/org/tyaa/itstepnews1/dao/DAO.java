@@ -20,4 +20,10 @@ public class DAO {
         News news = new News(_title, _content);
         ofy().save().entity(news).now();
 	}
+	
+	//
+	public static void deleteOrder(Long _newsId) {
+        
+		ofy().delete().type(News.class).id(_newsId).now();
+	}
 }

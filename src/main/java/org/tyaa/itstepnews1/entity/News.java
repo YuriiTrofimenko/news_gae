@@ -23,6 +23,8 @@ public class News {
     public String content;
     
     //private static Long newId = 1L;
+    
+    public News() {}
 
     public News(String title, String content) {
         
