@@ -43,32 +43,6 @@ $(document).ready(function (){
         $inputs.prop("disabled", false);
     });
     
-  //Обработчик кнопки Удалить
-    $('#deleteNews').click(function(ev){
-
-        ev.preventDefault();
-        var orderId = $('.selectedTableRow').find('th').text();
-        $.ajax({
-            url: "/news",
-            dataType: 'json',
-            type: "POST",
-            data: { 
-                'action': 'delete-news'
-                , 'news-id' : newsId
-            },
-            cache : false
-        }).done(function(resp) {
-
-            //Проверяем, успешно ли выполнено удаление записи о заказе
-            if (resp.data[0] == 'deleted') {
-                populateTable();
-            } //Иначе сообщаем об ошибке (далее можно заменить на отображение сообщения в форме)
-            else {
-                alert('Ошибка удаления новости');
-            }
-        });
-    });
-    
     function populateTable(){
 
         $('#table-container').html("<div class='progress'><div class='indeterminate'></div></div>");
@@ -109,6 +83,34 @@ $(document).ready(function (){
             );
             //Заполняем шаблон данными и помещаем на веб-страницу
             $('#table-container').html(template.render(resp));
+            
+            $('#deleteNews').unbind("click");
+            //Обработчик кнопки Удалить
+            $('#deleteNews').click(function(ev){
+
+                ev.preventDefault();
+                var newsId = $('.selectedTableRow').find('th').text();
+                $.ajax({
+                    url: "/news",
+                    dataType: 'json',
+                    type: "POST",
+                    data: { 
+                        'action': 'delete-news'
+                        , 'news-id' : newsId
+                    },
+                    cache : false
+                }).done(function(resp) {
+
+                    //Проверяем, успешно ли выполнено удаление записи о заказе
+                    if (resp.data[0] == 'deleted') {
+                        populateTable();
+                    } //Иначе сообщаем об ошибке (далее можно заменить на отображение сообщения в форме)
+                    else {
+                        alert('Ошибка удаления новости');
+                    }
+                });
+            });
+            
             //Блокируем кнопки работы со строками таблицы, пока не будет выбрана строка
             $("#deleteNews").attr('disabled', '');
             //Устанавливаем обработчик кликов на все строки таблицы кроме заголовка
